@@ -1,0 +1,102 @@
+@import "tailwindcss";
+
+@theme {
+  --font-display: "Playfair Display", ui-serif, Georgia, serif;
+  --font-sans: "Manrope", ui-sans-serif, system-ui, sans-serif;
+
+  /* Brand palette: gold + near-black, matching the event's flyers */
+  --color-gold-50: #fdf8ec;
+  --color-gold-100: #faeec9;
+  --color-gold-200: #f4dd97;
+  --color-gold-300: #edc85e;
+  --color-gold-400: #e6b333;
+  --color-gold-500: #d4a017;
+  --color-gold-600: #b17f11;
+  --color-gold-700: #8a6112;
+  --color-gold-800: #714f16;
+  --color-gold-900: #5f4318;
+
+  --color-ink-50: #f6f6f7;
+  --color-ink-100: #e2e2e5;
+  --color-ink-200: #c4c4cb;
+  --color-ink-300: #9d9da8;
+  --color-ink-400: #77778a;
+  --color-ink-500: #5c5c6f;
+  --color-ink-600: #46465a;
+  --color-ink-700: #313142;
+  --color-ink-800: #1c1c28;
+  --color-ink-900: #0c0c12;
+  --color-ink-950: #060609;
+
+  --animate-fade-up: fade-up 0.6s ease-out both;
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@layer base {
+  * {
+    @apply border-ink-100;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-ink-950 text-ink-100 font-sans antialiased;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    @apply font-display;
+  }
+
+  ::selection {
+    @apply bg-gold-400 text-ink-950;
+  }
+
+  /* Thin gold-tinted scrollbar for a premium feel */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background-color: var(--color-gold-700);
+    border-radius: 9999px;
+  }
+}
+
+@layer utilities {
+  .text-gradient-gold {
+    background: linear-gradient(135deg, #f4dd97 0%, #d4a017 50%, #b17f11 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .glass-panel {
+    @apply bg-ink-900/60 backdrop-blur-xl border border-gold-500/15;
+  }
+
+  .scrollbar-hide {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+}
