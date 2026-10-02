@@ -66,6 +66,12 @@
     @apply bg-gold-400 text-ink-950;
   }
 
+  input,
+  select,
+  textarea {
+    font-size: 16px;
+  }
+
   /* Thin gold-tinted scrollbar for a premium feel */
   ::-webkit-scrollbar {
     width: 8px;
