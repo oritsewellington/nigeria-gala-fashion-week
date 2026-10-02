@@ -35,6 +35,22 @@ const CATEGORIES = [
   "Bridal Designer of the Year",
 ];
 
+// Two organizer ("host") accounts, read from env vars so no real
+// credentials ever live in the codebase itself. Add more objects here
+// (and matching HOST3_* env vars) if you ever need a third.
+const HOSTS = [
+  {
+    name: process.env.HOST1_NAME || "Event Host 1",
+    email: (process.env.HOST1_EMAIL || "host1@gmail.com").toLowerCase(),
+    password: process.env.HOST1_PASSWORD || "ngfwhost001",
+  },
+  {
+    name: process.env.HOST2_NAME || "Event Host 2",
+    email: (process.env.HOST2_EMAIL || "host2@gmail.com").toLowerCase(),
+    password: process.env.HOST2_PASSWORD || "ngfwhost002",
+  },
+];
+
 const run = async () => {
   await mongoose.connect(process.env.MONGO_URI);
   console.log("[Seed] Connected to MongoDB");
@@ -54,6 +70,24 @@ const run = async () => {
       role: "superadmin",
     });
     console.log(`[Seed] Super admin created: ${email}`);
+  }
+
+  // Seed the two organizer/host accounts - same skip-if-exists pattern
+  // as the super admin above, so this is safe to run again later.
+  for (const host of HOSTS) {
+    const existingHost = await User.findOne({ email: host.email });
+
+    if (existingHost) {
+      console.log(`[Seed] Host already exists: ${host.email}`);
+    } else {
+      await User.create({
+        name: host.name,
+        email: host.email,
+        password: host.password,
+        role: "host",
+      });
+      console.log(`[Seed] Host created: ${host.email}`);
+    }
   }
 
   // Ensure a Settings document exists

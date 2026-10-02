@@ -1,33 +1,34 @@
-import { useEffect } from 'react';
-import { Routes, Route } from 'react-router-dom';
-import { Toaster } from 'sonner';
-import { useAppDispatch } from './app/hooks';
-import { useLazyGetMeQuery } from './features/auth/authApi';
-import { setCredentials, clearCredentials } from './features/auth/authSlice';
+import { useEffect } from "react";
+import { Routes, Route } from "react-router-dom";
+import { Toaster } from "sonner";
+import { useAppDispatch } from "./app/hooks";
+import { useLazyGetMeQuery } from "./features/auth/authApi";
+import { setCredentials, clearCredentials } from "./features/auth/authSlice";
 
-import PublicLayout from './components/layout/PublicLayout';
-import DashboardLayout from './components/dashboard/DashboardLayout';
-import ProtectedRoute from './components/ProtectedRoute';
+import PublicLayout from "./components/layout/PublicLayout";
+import DashboardLayout from "./components/dashboard/DashboardLayout";
+import ProtectedRoute from "./components/ProtectedRoute";
 
-import Home from './pages/public/Home';
-import Categories from './pages/public/Categories';
-import CategoryDetail from './pages/public/CategoryDetail';
-import ContestantProfile from './pages/public/ContestantProfile';
-import VotePage from './pages/public/VotePage';
-import VoteCallback from './pages/public/VoteCallback';
-import Leaderboard from './pages/public/Leaderboard';
-import About from './pages/public/About';
-import Login from './pages/public/Login';
-import NotFound from './pages/public/NotFound';
+import Home from "./pages/public/Home";
+import Categories from "./pages/public/Categories";
+import CategoryDetail from "./pages/public/CategoryDetail";
+import ContestantProfile from "./pages/public/ContestantProfile";
+import VotePage from "./pages/public/VotePage";
+import VoteCallback from "./pages/public/VoteCallback";
+import Leaderboard from "./pages/public/Leaderboard";
+import About from "./pages/public/About";
+import Login from "./pages/public/Login";
+import NotFound from "./pages/public/NotFound";
 
-import DashboardOverview from './pages/dashboard/DashboardOverview';
-import CategoriesManage from './pages/dashboard/CategoriesManage';
-import SponsorsManage from './pages/dashboard/SponsorsManage';
-import ContestantsManage from './pages/dashboard/ContestantsManage';
-import Transactions from './pages/dashboard/Transactions';
-import Payouts from './pages/dashboard/Payouts';
-import SettingsPage from './pages/dashboard/SettingsPage';
-import Admins from './pages/dashboard/Admins';
+import DashboardOverview from "./pages/dashboard/DashboardOverview";
+import CategoriesManage from "./pages/dashboard/CategoriesManage";
+import SponsorsManage from "./pages/dashboard/SponsorsManage";
+import ContestantsManage from "./pages/dashboard/ContestantsManage";
+import Transactions from "./pages/dashboard/Transactions";
+import Payouts from "./pages/dashboard/Payouts";
+import SettingsPage from "./pages/dashboard/SettingsPage";
+import Admins from "./pages/dashboard/Admins";
+import ScrollToTop from "./components/ScrollToTop";
 
 function App() {
   const dispatch = useAppDispatch();
@@ -45,14 +46,15 @@ function App() {
 
   return (
     <>
+      <ScrollToTop />
       <Toaster
         position="top-center"
         richColors
         toastOptions={{
           style: {
-            background: '#1c1c28',
-            border: '1px solid #313142',
-            color: '#e2e2e5',
+            background: "#1c1c28",
+            border: "1px solid #313142",
+            color: "#e2e2e5",
           },
         }}
       />
@@ -89,7 +91,7 @@ function App() {
           <Route
             path="settings"
             element={
-              <ProtectedRoute allowedRoles={['superadmin']}>
+              <ProtectedRoute allowedRoles={["superadmin"]}>
                 <SettingsPage />
               </ProtectedRoute>
             }
@@ -97,7 +99,7 @@ function App() {
           <Route
             path="admins"
             element={
-              <ProtectedRoute allowedRoles={['superadmin']}>
+              <ProtectedRoute allowedRoles={["superadmin"]}>
                 <Admins />
               </ProtectedRoute>
             }
