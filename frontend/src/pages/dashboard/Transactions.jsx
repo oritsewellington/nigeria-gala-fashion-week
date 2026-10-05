@@ -1,20 +1,20 @@
-import { useState } from 'react';
-import { Search, ChevronLeft, ChevronRight } from 'lucide-react';
-import { useGetTransactionsQuery } from '../../features/dashboard/dashboardApi';
-import { PageLoader } from '../../components/ui/Loaders';
-import { EmptyState, ErrorState } from '../../components/ui/States';
-import { getErrorMessage } from '../../lib/getErrorMessage';
-import { formatNaira, formatDate } from '../../lib/formatters';
+import { useState } from "react";
+import { Search, ChevronLeft, ChevronRight } from "lucide-react";
+import { useGetTransactionsQuery } from "../../features/dashboard/dashboardApi";
+import { PageLoader } from "../../components/ui/Loaders";
+import { EmptyState, ErrorState } from "../../components/ui/States";
+import { getErrorMessage } from "../../lib/getErrorMessage";
+import { formatNaira, formatDate } from "../../lib/formatters";
 
 const statusStyles = {
-  success: 'bg-emerald-500/10 text-emerald-400',
-  pending: 'bg-gold-500/10 text-gold-400',
-  failed: 'bg-red-500/10 text-red-400',
+  success: "bg-emerald-500/10 text-emerald-400",
+  pending: "bg-gold-500/10 text-gold-400",
+  failed: "bg-red-500/10 text-red-400",
 };
 
 export default function Transactions() {
-  const [search, setSearch] = useState('');
-  const [status, setStatus] = useState('');
+  const [search, setSearch] = useState("");
+  const [status, setStatus] = useState("");
   const [page, setPage] = useState(1);
 
   const { data, isLoading, isError, error, refetch } = useGetTransactionsQuery({
@@ -31,7 +31,9 @@ export default function Transactions() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold">Transactions</h1>
-        <p className="text-ink-400 text-sm mt-1">Every vote purchase, fully logged</p>
+        <p className="text-ink-400 text-sm mt-1">
+          Every vote purchase, fully logged
+        </p>
       </div>
 
       <div className="flex flex-col sm:flex-row gap-3">
@@ -40,14 +42,20 @@ export default function Transactions() {
           <input
             type="text"
             value={search}
-            onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setPage(1);
+            }}
             placeholder="Search by reference or email..."
-            className="w-full bg-ink-900 border border-ink-800 rounded-xl pl-10 pr-4 py-2.5 text-sm text-ink-100 placeholder:text-ink-500 focus:outline-none focus:border-gold-500/50"
+            className="w-full bg-ink-900 border border-ink-800 rounded-xl pl-10 pr-4 py-2.5 text-base text-ink-100 placeholder:text-ink-500 focus:outline-none focus:border-gold-500/50"
           />
         </div>
         <select
           value={status}
-          onChange={(e) => { setStatus(e.target.value); setPage(1); }}
+          onChange={(e) => {
+            setStatus(e.target.value);
+            setPage(1);
+          }}
           className="bg-ink-900 border border-ink-800 rounded-xl px-4 py-2.5 text-sm text-ink-100 focus:outline-none focus:border-gold-500/50"
         >
           <option value="">All statuses</option>
@@ -82,20 +90,33 @@ export default function Transactions() {
               <tbody>
                 {transactions.map((tx) => (
                   <tr key={tx._id} className="border-t border-ink-800">
-                    <td className="px-4 py-3 font-mono text-xs text-ink-400">{tx.reference}</td>
-                    <td className="px-4 py-3 text-ink-100">{tx.contestant?.name || '—'}</td>
+                    <td className="px-4 py-3 font-mono text-xs text-ink-400">
+                      {tx.reference}
+                    </td>
+                    <td className="px-4 py-3 text-ink-100">
+                      {tx.contestant?.name || "—"}
+                    </td>
                     <td className="px-4 py-3 text-ink-400">{tx.payerEmail}</td>
-                    <td className="px-4 py-3 text-ink-100">{tx.voteQuantity}</td>
-                    <td className="px-4 py-3 font-semibold text-ink-50">{formatNaira(tx.amount)}</td>
+                    <td className="px-4 py-3 text-ink-100">
+                      {tx.voteQuantity}
+                    </td>
+                    <td className="px-4 py-3 font-semibold text-ink-50">
+                      {formatNaira(tx.amount)}
+                    </td>
                     <td className="px-4 py-3 text-xs text-ink-400">
-                      {formatNaira(tx.hostShareAmount)} / {formatNaira(tx.platformShareAmount)}
+                      {formatNaira(tx.hostShareAmount)} /{" "}
+                      {formatNaira(tx.platformShareAmount)}
                     </td>
                     <td className="px-4 py-3">
-                      <span className={`text-xs px-2 py-1 rounded-full capitalize ${statusStyles[tx.status]}`}>
+                      <span
+                        className={`text-xs px-2 py-1 rounded-full capitalize ${statusStyles[tx.status]}`}
+                      >
                         {tx.status}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-xs text-ink-500 whitespace-nowrap">{formatDate(tx.createdAt)}</td>
+                    <td className="px-4 py-3 text-xs text-ink-500 whitespace-nowrap">
+                      {formatDate(tx.createdAt)}
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -104,7 +125,9 @@ export default function Transactions() {
 
           {meta && meta.pages > 1 && (
             <div className="flex items-center justify-between text-sm text-ink-400">
-              <span>Page {meta.page} of {meta.pages} · {meta.total} total</span>
+              <span>
+                Page {meta.page} of {meta.pages} · {meta.total} total
+              </span>
               <div className="flex gap-2">
                 <button
                   type="button"

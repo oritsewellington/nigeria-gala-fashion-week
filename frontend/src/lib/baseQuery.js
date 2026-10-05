@@ -7,6 +7,13 @@ const API_BASE_URL = import.meta.env.VITE_API_URL
 export const rawBaseQuery = fetchBaseQuery({
   baseUrl: API_BASE_URL,
   credentials: "include",
+  prepareHeaders: (headers, { getState }) => {
+    const token = getState()?.auth?.token;
+    if (token) {
+      headers.set("Authorization", `Bearer ${token}`);
+    }
+    return headers;
+  },
 });
 
 export const baseQueryWithErrorHandling = async (args, api, extraOptions) => {
