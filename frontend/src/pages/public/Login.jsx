@@ -28,7 +28,7 @@ export default function Login() {
 
     try {
       const res = await login(form).unwrap();
-      dispatch(setCredentials({ user: res.data.user }));
+      dispatch(setCredentials({ user: res.data.user, token: res.data.token }));
       toast.success(`Welcome back, ${res.data.user.name.split(" ")[0]}!`);
       navigate(location.state?.from?.pathname || "/dashboard", {
         replace: true,
