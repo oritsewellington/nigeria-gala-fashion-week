@@ -99,12 +99,12 @@ export default function DashboardOverview() {
           between the host and platform.
         </p>
 
-        <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
           {/* Gross */}
-          <div className="rounded-xl border border-white/5 p-4">
+          <div className="min-w-0 rounded-xl border border-white/5 p-4">
             <p className="text-ink-500 text-xs">Gross Revenue</p>
 
-            <p className="text-xl font-bold text-ink-50 mt-1">
+            <p className="text-xl font-bold text-ink-50 mt-1 min-w-0 wrap-break-word tabular-nums leading-tight">
               {formatNaira(stats.grossRevenue)}
             </p>
 
@@ -112,10 +112,10 @@ export default function DashboardOverview() {
           </div>
 
           {/* Paystack fees */}
-          <div className="rounded-xl border border-white/5 p-4">
+          <div className="min-w-0 rounded-xl border border-white/5 p-4">
             <p className="text-ink-500 text-xs">Paystack Fees</p>
 
-            <p className="text-xl font-bold text-ink-50 mt-1">
+            <p className="text-xl font-bold text-ink-50 mt-1 min-w-0 wrap-break-word tabular-nums leading-tight">
               {formatNaira(stats.paystackFees)}
             </p>
 
@@ -123,7 +123,7 @@ export default function DashboardOverview() {
           </div>
 
           {/* Net */}
-          <div className="rounded-xl border border-white/5 p-4">
+          <div className="min-w-0 rounded-xl border border-white/5 p-4">
             <p className="text-ink-500 text-xs">Net Revenue</p>
 
             <p className="text-xl font-bold text-emerald-400 mt-1">
@@ -134,12 +134,12 @@ export default function DashboardOverview() {
           </div>
 
           {/* Platform */}
-          <div className="rounded-xl border border-white/5 p-4">
+          <div className="min-w-0 rounded-xl border border-white/5 p-4">
             <p className="text-ink-500 text-xs">
               Platform Share ({stats.platformSharePercent}%)
             </p>
 
-            <p className="text-xl font-bold text-ink-50 mt-1">
+            <p className="text-xl font-bold text-ink-50 mt-1 min-w-0 wrap-break-word tabular-nums leading-tight">
               {formatNaira(stats.platformShare)}
             </p>
 
@@ -147,12 +147,12 @@ export default function DashboardOverview() {
           </div>
 
           {/* Host */}
-          <div className="rounded-xl border border-white/5 p-4">
+          <div className="min-w-0 rounded-xl border border-white/5 p-4">
             <p className="text-ink-500 text-xs">
               Host Share ({100 - stats.platformSharePercent}%)
             </p>
 
-            <p className="text-xl font-bold text-ink-50 mt-1">
+            <p className="text-xl font-bold text-ink-50 mt-1 min-w-0 wrap-break-word tabular-nums leading-tight">
               {formatNaira(stats.hostShare)}
             </p>
 
