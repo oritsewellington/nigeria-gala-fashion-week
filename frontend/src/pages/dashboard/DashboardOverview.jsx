@@ -40,6 +40,10 @@ export default function DashboardOverview() {
 
   const stats = data?.data;
 
+  const maxTrendVotes = Math.max(
+    ...(stats?.dailyTrend?.map((d) => d.votes) || [1]),
+    1,
+  );
   return (
     <div className="space-y-8">
       {/* Header */}
