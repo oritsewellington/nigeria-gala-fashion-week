@@ -1,6 +1,13 @@
 import { Link } from "react-router-dom";
 
-import { Vote, Wallet, Users, FolderKanban } from "lucide-react";
+import {
+  Vote,
+  Wallet,
+  Users,
+  FolderKanban,
+  TrendingUp,
+  Crown,
+} from "lucide-react";
 
 import { useGetOverviewQuery } from "../../features/dashboard/dashboardApi";
 
