@@ -1,13 +1,5 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
-/**
- * One document per Paystack payment attempt.
- * status: pending -> created, waiting for user to complete payment
- *         success -> verified with Paystack, votes have been credited
- *         failed  -> payment failed or was abandoned
- * The 90/10 split is snapshotted at creation time (platformSharePercent)
- * so historical records stay accurate even if the split % changes later.
- */
 const transactionSchema = new mongoose.Schema(
   {
     reference: {
@@ -16,83 +8,121 @@ const transactionSchema = new mongoose.Schema(
       unique: true,
       index: true,
     },
+
     contestant: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Contestant',
+      ref: "Contestant",
       required: true,
       index: true,
     },
+
     category: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Category',
+      ref: "Category",
       required: true,
       index: true,
     },
+
     voteQuantity: {
       type: Number,
       required: true,
-      min: [1, 'Must purchase at least 1 vote'],
+      min: [1, "Must purchase at least 1 vote"],
     },
+
     unitPrice: {
       type: Number,
-      required: true, // NGN, snapshotted from settings at time of purchase
+      required: true,
     },
+
+    // Amount paid by the customer BEFORE Paystack fees.
+    // This remains the gross transaction amount.
     amount: {
       type: Number,
-      required: true, // voteQuantity * unitPrice, in NGN
+      required: true,
     },
+
+    // Actual Paystack fee charged for this transaction.
+    // Stored in Naira.
+    paystackFeeAmount: {
+      type: Number,
+      default: null,
+      min: 0,
+    },
+
+    // Gross amount minus Paystack fee.
+    // This is the amount that gets split between host/platform.
+    netAmount: {
+      type: Number,
+      default: null,
+      min: 0,
+    },
+
     platformSharePercent: {
       type: Number,
-      required: true, // e.g. 10
+      required: true,
     },
+
+    // Platform share is calculated from NET amount.
     platformShareAmount: {
       type: Number,
       required: true,
     },
+
+    // Host share is calculated from NET amount.
     hostShareAmount: {
       type: Number,
       required: true,
     },
+
     payerName: {
       type: String,
       trim: true,
-      default: '',
+      default: "",
     },
+
     payerEmail: {
       type: String,
       required: true,
       lowercase: true,
       trim: true,
     },
+
     payerPhone: {
       type: String,
       trim: true,
-      default: '',
+      default: "",
     },
+
     status: {
       type: String,
-      enum: ['pending', 'success', 'failed'],
-      default: 'pending',
+      enum: ["pending", "success", "failed"],
+      default: "pending",
       index: true,
     },
+
     paystackChannel: {
       type: String,
-      default: null, // card, bank, ussd, etc.
+      default: null,
     },
+
     gatewayResponse: {
       type: String,
       default: null,
     },
+
     paidAt: {
       type: Date,
       default: null,
     },
+
     ipAddress: {
       type: String,
       default: null,
     },
   },
-  { timestamps: true }
+  {
+    timestamps: true,
+  },
 );
 
-module.exports = mongoose.model('Transaction', transactionSchema);
+module.exports = mongoose.model("Transaction", transactionSchema);

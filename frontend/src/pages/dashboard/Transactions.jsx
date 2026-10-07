@@ -1,10 +1,15 @@
 import { useState } from "react";
 import { Search, ChevronLeft, ChevronRight } from "lucide-react";
+
 import { useGetTransactionsQuery } from "../../features/dashboard/dashboardApi";
+
 import { PageLoader } from "../../components/ui/Loaders";
+
 import { EmptyState, ErrorState } from "../../components/ui/States";
+
 import { getErrorMessage } from "../../lib/getErrorMessage";
-import { formatNaira, formatDate } from "../../lib/formatters";
+
+import { formatNaira, formatDate, formatNumber } from "../../lib/formatters";
 
 const statusStyles = {
   success: "bg-emerald-500/10 text-emerald-400",
@@ -76,47 +81,55 @@ export default function Transactions() {
           <div className="overflow-x-auto rounded-2xl border border-ink-800">
             <table className="w-full text-sm">
               <thead>
-                <tr className="bg-ink-900 text-ink-400 text-left">
-                  <th className="px-4 py-3 font-medium">Reference</th>
-                  <th className="px-4 py-3 font-medium">Contestant</th>
-                  <th className="px-4 py-3 font-medium">Payer</th>
-                  <th className="px-4 py-3 font-medium">Votes</th>
-                  <th className="px-4 py-3 font-medium">Amount</th>
-                  <th className="px-4 py-3 font-medium">Host / Platform</th>
-                  <th className="px-4 py-3 font-medium">Status</th>
-                  <th className="px-4 py-3 font-medium">Date</th>
+                <tr>
+                  <th>Reference</th>
+                  <th>Contestant</th>
+                  <th>Payer</th>
+                  <th>Votes</th>
+                  <th>Gross</th>
+                  <th>Paystack Fee</th>
+                  <th>Net</th>
+                  <th>Host / Platform</th>
+                  <th>Status</th>
+                  <th>Date</th>
                 </tr>
               </thead>
               <tbody>
                 {transactions.map((tx) => (
-                  <tr key={tx._id} className="border-t border-ink-800">
-                    <td className="px-4 py-3 font-mono text-xs text-ink-400">
-                      {tx.reference}
+                  <tr key={tx._id}>
+                    <td>{tx.reference}</td>
+
+                    <td>{tx.contestant?.name || "—"}</td>
+
+                    <td>{tx.payerEmail}</td>
+
+                    <td>{formatNumber(tx.voteQuantity)}</td>
+
+                    {/* Gross amount customer paid */}
+                    <td>{formatNaira(tx.amount)}</td>
+
+                    {/* Actual Paystack fee */}
+                    <td>
+                      {tx.paystackFeeAmount != null
+                        ? formatNaira(tx.paystackFeeAmount)
+                        : "—"}
                     </td>
-                    <td className="px-4 py-3 text-ink-100">
-                      {tx.contestant?.name || "—"}
+
+                    {/* Net amount after Paystack */}
+                    <td className="font-semibold">
+                      {tx.netAmount != null ? formatNaira(tx.netAmount) : "—"}
                     </td>
-                    <td className="px-4 py-3 text-ink-400">{tx.payerEmail}</td>
-                    <td className="px-4 py-3 text-ink-100">
-                      {tx.voteQuantity}
+
+                    {/* Host / Platform */}
+                    <td>
+                      {tx.netAmount != null
+                        ? `${formatNaira(tx.hostShareAmount)} / ${formatNaira(tx.platformShareAmount)}`
+                        : "—"}
                     </td>
-                    <td className="px-4 py-3 font-semibold text-ink-50">
-                      {formatNaira(tx.amount)}
-                    </td>
-                    <td className="px-4 py-3 text-xs text-ink-400">
-                      {formatNaira(tx.hostShareAmount)} /{" "}
-                      {formatNaira(tx.platformShareAmount)}
-                    </td>
-                    <td className="px-4 py-3">
-                      <span
-                        className={`text-xs px-2 py-1 rounded-full capitalize ${statusStyles[tx.status]}`}
-                      >
-                        {tx.status}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-xs text-ink-500 whitespace-nowrap">
-                      {formatDate(tx.createdAt)}
-                    </td>
+
+                    <td>{tx.status}</td>
+
+                    <td>{formatDate(tx.createdAt)}</td>
                   </tr>
                 ))}
               </tbody>
