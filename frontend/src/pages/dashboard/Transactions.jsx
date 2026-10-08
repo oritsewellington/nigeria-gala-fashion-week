@@ -78,7 +78,112 @@ export default function Transactions() {
         <EmptyState title="No transactions found" />
       ) : (
         <>
-          <div className="overflow-x-auto rounded-2xl border border-ink-800">
+          {/* Mobile transaction cards */}
+          <div className="space-y-3 md:hidden">
+            {transactions.map((tx) => (
+              <div
+                key={tx._id}
+                className="rounded-2xl border border-ink-800 bg-ink-950/50 p-4"
+              >
+                {/* Header */}
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="text-xs text-ink-500 mb-1">Reference</p>
+
+                    <p className="text-sm font-semibold text-ink-100 truncate">
+                      {tx.reference}
+                    </p>
+                  </div>
+
+                  <span
+                    className={`shrink-0 inline-flex items-center rounded-full px-2.5 py-1 text-[11px] font-medium capitalize ${
+                      statusStyles[tx.status] || "bg-ink-800 text-ink-300"
+                    }`}
+                  >
+                    {tx.status}
+                  </span>
+                </div>
+
+                {/* Customer */}
+                <div className="mt-4">
+                  <p className="text-sm font-medium text-ink-100 truncate">
+                    {tx.contestant?.name || "—"}
+                  </p>
+
+                  <p className="text-xs text-ink-500 truncate mt-0.5">
+                    {tx.payerEmail}
+                  </p>
+                </div>
+
+                {/* Financial breakdown */}
+                <div className="mt-4 grid grid-cols-2 gap-x-4 gap-y-3 border-t border-ink-800 pt-4">
+                  <div>
+                    <p className="text-[11px] text-ink-500">Votes</p>
+
+                    <p className="text-sm font-semibold text-ink-100 tabular-nums">
+                      {formatNumber(tx.voteQuantity)}
+                    </p>
+                  </div>
+
+                  <div>
+                    <p className="text-[11px] text-ink-500">Gross</p>
+
+                    <p className="text-sm font-semibold text-ink-100 tabular-nums">
+                      {formatNaira(tx.amount)}
+                    </p>
+                  </div>
+
+                  <div>
+                    <p className="text-[11px] text-ink-500">Paystack Fee</p>
+
+                    <p className="text-sm font-semibold text-ink-100 tabular-nums">
+                      {tx.paystackFeeAmount != null
+                        ? formatNaira(tx.paystackFeeAmount)
+                        : "—"}
+                    </p>
+                  </div>
+
+                  <div>
+                    <p className="text-[11px] text-ink-500">Net</p>
+
+                    <p className="text-sm font-semibold text-emerald-400 tabular-nums">
+                      {tx.netAmount != null ? formatNaira(tx.netAmount) : "—"}
+                    </p>
+                  </div>
+
+                  <div>
+                    <p className="text-[11px] text-ink-500">Host Share</p>
+
+                    <p className="text-sm font-semibold text-ink-100 tabular-nums">
+                      {tx.netAmount != null
+                        ? formatNaira(tx.hostShareAmount)
+                        : "—"}
+                    </p>
+                  </div>
+
+                  <div>
+                    <p className="text-[11px] text-ink-500">Platform Share</p>
+
+                    <p className="text-sm font-semibold text-ink-100 tabular-nums">
+                      {tx.netAmount != null
+                        ? formatNaira(tx.platformShareAmount)
+                        : "—"}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Date */}
+                <div className="mt-4 border-t border-ink-800 pt-3">
+                  <p className="text-xs text-ink-500">
+                    {formatDate(tx.createdAt)}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Desktop transaction table */}
+          <div className="hidden md:block overflow-x-auto rounded-2xl border border-ink-800">
             <table className="w-full text-sm">
               <thead>
                 <tr>
@@ -94,6 +199,7 @@ export default function Transactions() {
                   <th>Date</th>
                 </tr>
               </thead>
+
               <tbody>
                 {transactions.map((tx) => (
                   <tr key={tx._id}>
@@ -105,29 +211,33 @@ export default function Transactions() {
 
                     <td>{formatNumber(tx.voteQuantity)}</td>
 
-                    {/* Gross amount customer paid */}
                     <td>{formatNaira(tx.amount)}</td>
 
-                    {/* Actual Paystack fee */}
                     <td>
                       {tx.paystackFeeAmount != null
                         ? formatNaira(tx.paystackFeeAmount)
                         : "—"}
                     </td>
 
-                    {/* Net amount after Paystack */}
                     <td className="font-semibold">
                       {tx.netAmount != null ? formatNaira(tx.netAmount) : "—"}
                     </td>
 
-                    {/* Host / Platform */}
                     <td>
                       {tx.netAmount != null
                         ? `${formatNaira(tx.hostShareAmount)} / ${formatNaira(tx.platformShareAmount)}`
                         : "—"}
                     </td>
 
-                    <td>{tx.status}</td>
+                    <td>
+                      <span
+                        className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium capitalize ${
+                          statusStyles[tx.status] || "bg-ink-800 text-ink-300"
+                        }`}
+                      >
+                        {tx.status}
+                      </span>
+                    </td>
 
                     <td>{formatDate(tx.createdAt)}</td>
                   </tr>
