@@ -222,9 +222,8 @@ const finalizeTransaction = async (reference) => {
 
   const netAmount = Math.max(0, transaction.amount - paystackFeeAmount);
 
-  const platformShareAmount = Math.round(
-    (netAmount * transaction.platformSharePercent) / 100,
-  );
+  const platformShareAmount =
+    (netAmount * transaction.platformSharePercent) / 100;
 
   const hostShareAmount = netAmount - platformShareAmount;
 
