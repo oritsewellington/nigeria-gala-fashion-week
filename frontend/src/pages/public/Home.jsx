@@ -8,7 +8,6 @@ import VotingStatusBadge from "../../components/public/VotingStatusBadge";
 import LiveStatsBar from "../../components/public/LiveStatsBar";
 import HeritagePillars from "../../components/public/HeritagePillars";
 import ContestantsCarousel from "../../components/public/ContestantsCarousel";
-import SponsorsStrip from "../../components/public/SponsorsStrip";
 import CategoryCard from "../../components/public/CategoryCard";
 import { CardSkeleton } from "../../components/ui/Loaders";
 import { EmptyState } from "../../components/ui/States";
@@ -65,7 +64,7 @@ export default function Home() {
           <img
             src={heroSrc}
             alt="Nigeria Gala Fashion Week"
-            className="aspect-[810/475] w-full object-cover"
+            className="aspect-[810/530] w-full object-cover"
           />
           <div className="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-ink-950 via-ink-950/70 to-transparent" />
         </div>
@@ -76,10 +75,17 @@ export default function Home() {
               animate={{ opacity: 1, y: 0 }}
               className="mb-5"
             >
-              <VotingStatusBadge
-                status={votingStatus.status}
-                timeLeft={votingStatus.timeLeft}
-              />
+              {/ended|closed|over/i.test(String(votingStatus.status)) ? (
+                <span className="inline-flex items-center gap-2 rounded-full border border-red-400/60 bg-red-500/20 px-5 py-2 text-sm font-bold uppercase tracking-wider text-red-200 shadow-lg shadow-red-500/10">
+                  <span className="h-2 w-2 rounded-full bg-red-400" />
+                  Voting has ended
+                </span>
+              ) : (
+                <VotingStatusBadge
+                  status={votingStatus.status}
+                  timeLeft={votingStatus.timeLeft}
+                />
+              )}
             </motion.div>
           )}
           <motion.p
@@ -133,6 +139,28 @@ export default function Home() {
           </motion.div>
         </div>
       </section>
+
+      {/* Infinite moving tape (pure CSS, starts instantly) */}
+      <div
+        className="overflow-hidden border-y border-gold-400/30 bg-gradient-to-r from-gold-400 to-gold-600 py-3 text-ink-950"
+        aria-hidden="true"
+      >
+        <style>{`@keyframes ngfw-tape{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+.ngfw-tape{animation:ngfw-tape 34s linear infinite;will-change:transform}
+@media (prefers-reduced-motion:reduce){.ngfw-tape{animation:none}}`}</style>
+        <div className="ngfw-tape flex w-max whitespace-nowrap text-xs font-bold tracking-[0.4em]">
+          {[0, 1].map((k) => (
+            <div key={k} className="flex shrink-0 gap-10 pr-10">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <span key={i} className="flex items-center gap-10">
+                  REDEFINING FASHION THROUGH OUR CULTURE AND HERITAGE{" "}
+                  <Sparkles className="h-3.5 w-3.5" />
+                </span>
+              ))}
+            </div>
+          ))}
+        </div>
+      </div>
 
       {/* Live stats bar */}
       <LiveStatsBar />
@@ -220,9 +248,6 @@ export default function Home() {
           </div>
         )}
       </section>
-
-      {/* Sponsors / partners */}
-      <SponsorsStrip />
     </div>
   );
 }
