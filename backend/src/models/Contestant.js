@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 const contestantSchema = new mongoose.Schema(
   {
@@ -6,32 +6,32 @@ const contestantSchema = new mongoose.Schema(
       type: String,
       required: [true, "Contestant's name is required"],
       trim: true,
-      maxlength: [100, 'Name cannot exceed 100 characters'],
+      maxlength: [100, "Name cannot exceed 100 characters"],
     },
     category: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Category',
-      required: [true, 'Category is required'],
+      ref: "Category",
+      required: [true, "Category is required"],
       index: true,
     },
     contestantNumber: {
-      type: String, // e.g. "M-014" so hosts can reference offline too
+      type: String,
       trim: true,
       default: null,
     },
     bio: {
       type: String,
       trim: true,
-      maxlength: [1000, 'Bio cannot exceed 1000 characters'],
-      default: '',
+      maxlength: [1000, "Bio cannot exceed 1000 characters"],
+      default: "",
     },
     instagramHandle: {
       type: String,
       trim: true,
-      default: '',
+      default: "",
     },
     photo: {
-      url: { type: String, required: [true, 'Contestant photo is required'] },
+      url: { type: String, required: [true, "Contestant photo is required"] },
       publicId: { type: String, required: true },
     },
     gallery: [
@@ -51,9 +51,9 @@ const contestantSchema = new mongoose.Schema(
       default: true,
     },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 contestantSchema.index({ category: 1, voteCount: -1 });
 
-module.exports = mongoose.model('Contestant', contestantSchema);
+module.exports = mongoose.model("Contestant", contestantSchema);

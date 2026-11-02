@@ -4,40 +4,27 @@ const User = require("../models/User");
 const Settings = require("../models/Settings");
 const Category = require("../models/Category");
 
-// From the Nigeria Gala Fashion Week Award Night nomination categories flyer
 const CATEGORIES = [
   "Male Model of the Year",
   "Female Model of the Year",
-  "Editorial Model of the Year",
   "Pageant King of the Year",
   "Pageant Queen of the Year",
-  "Male Designer of the Year",
-  "Female Designer of the Year",
-  "Photographer of the Year",
-  "Commercial Model of the Year",
-  "Brand of the Year",
-  "Male Artist of the Year",
-  "Female Artist of the Year",
-  "Mobile Photographer of the Year",
+  "Artist of the Year",
   "Male Runway Model of the Year",
   "Female Runway Model of the Year",
   "Influencer / Tiktoker of the Year",
-  "MUA of the Year",
   "Male Dancer of the Year",
   "Female Dancer of the Year",
+  "Commercial Model of the Year",
+  "Photographer of the Year",
+  "Brand of the Year",
+  "MUA of the Year",
+  "Mobile Photographer of the Year",
+  "Male Designer of the Year",
+  "Female Designer of the Year",
   "Clothing Brand of the Year",
-  "Hair Brand of the Year",
-  "Exchange Brand of the Year",
-  "Best Fashion Stylist of the Year",
-  "Most Fashionable Model of the Year",
-  "Female Vixen of the Year",
-  "Red Carpet Host of the Year",
-  "Bridal Designer of the Year",
 ];
 
-// Two organizer ("host") accounts, read from env vars so no real
-// credentials ever live in the codebase itself. Add more objects here
-// (and matching HOST3_* env vars) if you ever need a third.
 const HOSTS = [
   {
     name: process.env.HOST1_NAME || "Event Host 1",
@@ -72,8 +59,6 @@ const run = async () => {
     console.log(`[Seed] Super admin created: ${email}`);
   }
 
-  // Seed the two organizer/host accounts - same skip-if-exists pattern
-  // as the super admin above, so this is safe to run again later.
   for (const host of HOSTS) {
     const existingHost = await User.findOne({ email: host.email });
 
@@ -90,35 +75,25 @@ const run = async () => {
     }
   }
 
-  // Ensure a Settings document exists
   await Settings.getSettings();
   console.log("[Seed] Settings document ensured");
 
-  // Seed categories - skips any that already exist by name, so this is
-  // safe to run again later without creating duplicates.
-  let created = 0;
-  let skipped = 0;
+  const removed = await Category.deleteMany({ name: { $nin: CATEGORIES } });
+  console.log(`[Seed] Categories removed: ${removed.deletedCount}`);
 
-  for (let i = 0; i < CATEGORIES.length; i += 1) {
-    const name = CATEGORIES[i];
-    const alreadyExists = await Category.findOne({ name });
-
-    if (alreadyExists) {
-      skipped += 1;
-    } else {
-      await Category.create({
-        name,
-        displayOrder: i,
-        // No coverImage yet - can be added later from the dashboard.
-      });
-      created += 1;
-    }
-  }
-
-  console.log(
-    `[Seed] Categories: ${created} created, ${skipped} already existed`,
+  const result = await Category.bulkWrite(
+    CATEGORIES.map((name, i) => ({
+      updateOne: {
+        filter: { name },
+        update: { $set: { displayOrder: i }, $setOnInsert: { name } },
+        upsert: true,
+      },
+    })),
   );
 
+  console.log(
+    `[Seed] Categories: ${result.upsertedCount} created, ${result.matchedCount} already existed (order refreshed)`,
+  );
   await mongoose.disconnect();
   console.log("[Seed] Done");
   process.exit(0);

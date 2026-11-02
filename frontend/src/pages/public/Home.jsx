@@ -5,7 +5,6 @@ import { useVotingStatus } from "../../hooks/useVotingStatus";
 import { useGetCategoriesQuery } from "../../features/categories/categoriesApi";
 import { useGetContestantsQuery } from "../../features/contestants/contestantsApi";
 import VotingStatusBadge from "../../components/public/VotingStatusBadge";
-import HeroSlider from "../../components/public/HeroSlider";
 import LiveStatsBar from "../../components/public/LiveStatsBar";
 import HeritagePillars from "../../components/public/HeritagePillars";
 import ContestantsCarousel from "../../components/public/ContestantsCarousel";
@@ -42,57 +41,95 @@ export default function Home() {
   const categories = categoriesData?.data?.categories || [];
   const featured = featuredData?.data?.contestants || [];
 
+  // One banner image: the first one set in the admin settings (a link, or an object holding one), else the default.
+  const firstHero = votingStatus.heroImages?.[0];
+  const heroSrc =
+    (typeof firstHero === "string"
+      ? firstHero
+      : firstHero?.url || firstHero?.image || firstHero?.src) || "/hero.jpg";
+
   return (
     <div>
-      {/* Hero */}
-      <section className="relative overflow-hidden border-b border-ink-800 min-h-[600px] flex items-center">
-        <HeroSlider images={votingStatus.heroImages} />
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-24 text-center w-full">
-          <motion.div
-            initial={{ opacity: 0, y: 16 }}
+      {/* Hero. Phones: banner image on top, content below it. Desktop: the image is a faded backdrop behind the content. */}
+      <section className="relative isolate overflow-hidden border-b border-ink-800">
+        {/* Desktop / tablet */}
+        <img
+          src={heroSrc}
+          alt=""
+          className="absolute inset-0 -z-20 hidden h-full w-full object-cover object-top opacity-50 md:block"
+        />
+        <div className="absolute inset-0 -z-10 hidden bg-gradient-to-b from-ink-950/70 via-ink-950/60 to-ink-950 md:block" />
+        <div className="absolute inset-0 -z-10 bg-[radial-gradient(60%_50%_at_50%_30%,rgba(226,184,101,0.16),transparent)]" />
+        {/* Phones: the WHOLE image at its natural shape (nobody cropped out), fading into the page */}
+        <div className="relative md:hidden">
+          <img
+            src={heroSrc}
+            alt="Nigeria Gala Fashion Week"
+            className="aspect-[810/475] w-full object-cover"
+          />
+          <div className="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-ink-950 via-ink-950/70 to-transparent" />
+        </div>
+        <div className="mx-auto -mt-10 flex max-w-6xl flex-col items-center justify-center px-5 pb-16 text-center md:mt-0 md:min-h-[88dvh] md:py-20">
+          {votingStatus.status && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mb-5"
+            >
+              <VotingStatusBadge
+                status={votingStatus.status}
+                timeLeft={votingStatus.timeLeft}
+              />
+            </motion.div>
+          )}
+          <motion.p
+            initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
+            className="mb-4 text-xs font-semibold uppercase tracking-[0.3em] text-gold-400 sm:text-sm"
           >
-            {votingStatus.status && (
-              <div className="flex justify-center mb-6">
-                <VotingStatusBadge
-                  status={votingStatus.status}
-                  timeLeft={votingStatus.timeLeft}
-                />
-              </div>
-            )}
-
-            <p className="uppercase tracking-[0.3em] text-gold-400 text-xs font-semibold mb-4">
-              {votingStatus.eventTagline ||
-                "Fashion · Beauty · Culture · Heritage · Innovation"}
-            </p>
-            <h1 className="text-4xl sm:text-6xl lg:text-7xl font-bold leading-[1.05] mb-6">
-              <span className="text-ink-50">Nigeria Gala</span>
-              <br />
-              <span className="text-gradient-gold">Fashion Week</span>
-            </h1>
-            <p className="text-ink-300 text-base sm:text-lg max-w-2xl mx-auto mb-10">
-              Africa's most anticipated fashion experience. Cast your vote for
-              the models, designers and creatives redefining fashion through our
-              own heritage and identity.
-            </p>
-
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Link
-                to="/categories"
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-xl bg-gradient-to-r from-gold-400 to-gold-600 text-ink-950 font-semibold hover:from-gold-300 hover:to-gold-500 transition-colors shadow-xl shadow-gold-500/20"
-              >
-                <Vote className="w-5 h-5" />
-                Vote Now
-              </Link>
-              <Link
-                to="/leaderboard"
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-xl border border-ink-700 text-ink-100 font-semibold hover:bg-ink-800 transition-colors"
-              >
-                View Leaderboard
-                <ArrowRight className="w-4 h-4" />
-              </Link>
-            </div>
+            {votingStatus.eventTagline ||
+              "Fashion · Beauty · Culture · Heritage · Innovation"}
+          </motion.p>
+          <motion.h1
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1, duration: 0.7 }}
+            className="text-5xl font-extrabold leading-[1.05] sm:text-7xl lg:text-8xl"
+          >
+            <span className="text-ink-50">Nigeria Gala</span>
+            <br />
+            <span className="text-gradient-gold">Fashion Week</span>
+          </motion.h1>
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.35 }}
+            className="mt-6 max-w-xl text-lg text-ink-300"
+          >
+            Africa's most anticipated fashion experience. Cast your vote for the
+            models, designers and creatives redefining fashion through our own
+            heritage and identity.
+          </motion.p>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.6 }}
+            className="mt-10 flex flex-wrap justify-center gap-3"
+          >
+            <Link
+              to="/categories"
+              className="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-gold-400 to-gold-600 px-8 py-3.5 font-semibold text-ink-950 shadow-xl shadow-gold-500/20 transition-colors hover:from-gold-300 hover:to-gold-500"
+            >
+              <Vote className="h-5 w-5" />
+              Vote Now
+            </Link>
+            <Link
+              to="/leaderboard"
+              className="inline-flex items-center justify-center gap-2 rounded-xl border border-ink-700 px-8 py-3.5 font-semibold text-ink-100 transition-colors hover:bg-ink-800"
+            >
+              View Leaderboard
+              <ArrowRight className="h-4 w-4" />
+            </Link>
           </motion.div>
         </div>
       </section>
