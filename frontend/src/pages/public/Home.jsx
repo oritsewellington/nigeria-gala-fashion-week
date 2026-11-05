@@ -40,12 +40,8 @@ export default function Home() {
   const categories = categoriesData?.data?.categories || [];
   const featured = featuredData?.data?.contestants || [];
 
-  // One banner image: the first one set in the admin settings (a link, or an object holding one), else the default.
-  const firstHero = votingStatus.heroImages?.[0];
-  const heroSrc =
-    (typeof firstHero === "string"
-      ? firstHero
-      : firstHero?.url || firstHero?.image || firstHero?.src) || "/hero.jpg";
+  // Static banner: put your image in the public folder as hero.jpg. It does not come from the API, so it never starts blank.
+  const heroSrc = "/hero.jpeg";
 
   return (
     <div>
@@ -55,20 +51,24 @@ export default function Home() {
         <img
           src={heroSrc}
           alt=""
+          fetchPriority="high"
           className="absolute inset-0 -z-20 hidden h-full w-full object-cover object-top opacity-50 md:block"
         />
         <div className="absolute inset-0 -z-10 hidden bg-gradient-to-b from-ink-950/70 via-ink-950/60 to-ink-950 md:block" />
         <div className="absolute inset-0 -z-10 bg-[radial-gradient(60%_50%_at_50%_30%,rgba(226,184,101,0.16),transparent)]" />
         {/* Phones: the WHOLE image at its natural shape (nobody cropped out), fading into the page */}
-        <div className="relative md:hidden">
+        <div className="relative bg-ink-900 md:hidden">
           <img
             src={heroSrc}
             alt="Nigeria Gala Fashion Week"
-            className="aspect-[810/530] w-full object-cover"
+            fetchPriority="high"
+            decoding="async"
+            className="aspect-[810/580] w-full object-cover object-top"
           />
-          <div className="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-ink-950 via-ink-950/70 to-transparent" />
+          <div className="absolute inset-x-0 top-0 h-16 bg-gradient-to-b from-ink-950/50 to-transparent" />
+          <div className="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-ink-950 via-ink-950/75 to-transparent" />
         </div>
-        <div className="mx-auto -mt-10 flex max-w-6xl flex-col items-center justify-center px-5 pb-16 text-center md:mt-0 md:min-h-[88dvh] md:py-20">
+        <div className="relative z-10 mx-auto -mt-10 flex max-w-6xl flex-col items-center justify-center px-5 pb-14 pt-8 text-center md:mt-0 md:min-h-[85dvh] md:py-20">
           {votingStatus.status && (
             <motion.div
               initial={{ opacity: 0, y: -10 }}
@@ -76,7 +76,7 @@ export default function Home() {
               className="mb-5"
             >
               {/ended|closed|over/i.test(String(votingStatus.status)) ? (
-                <span className="inline-flex items-center gap-2 rounded-full border border-red-400/60 bg-red-500/20 px-5 py-2 text-sm font-bold uppercase tracking-wider text-red-200 shadow-lg shadow-red-500/10">
+                <span className="inline-flex items-center gap-2 rounded-full border border-red-400 bg-red-950 px-5 py-2 text-sm font-bold uppercase tracking-wider text-red-100 shadow-lg">
                   <span className="h-2 w-2 rounded-full bg-red-400" />
                   Voting has ended
                 </span>
@@ -110,7 +110,7 @@ export default function Home() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.35 }}
-            className="mt-6 max-w-xl text-lg text-ink-300"
+            className="mt-5 max-w-xl text-base text-ink-300 sm:text-lg"
           >
             Africa's most anticipated fashion experience. Cast your vote for the
             models, designers and creatives redefining fashion through our own
@@ -120,18 +120,18 @@ export default function Home() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.6 }}
-            className="mt-10 flex flex-wrap justify-center gap-3"
+            className="mt-9 flex w-full max-w-sm flex-col items-center justify-center gap-3 sm:w-auto sm:max-w-none sm:flex-row"
           >
             <Link
               to="/categories"
-              className="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-gold-400 to-gold-600 px-8 py-3.5 font-semibold text-ink-950 shadow-xl shadow-gold-500/20 transition-colors hover:from-gold-300 hover:to-gold-500"
+              className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-gold-400 to-gold-600 px-8 sm:w-auto py-3.5 font-semibold text-ink-950 shadow-xl shadow-gold-500/20 transition-colors hover:from-gold-300 hover:to-gold-500"
             >
               <Vote className="h-5 w-5" />
               Vote Now
             </Link>
             <Link
               to="/leaderboard"
-              className="inline-flex items-center justify-center gap-2 rounded-xl border border-ink-700 px-8 py-3.5 font-semibold text-ink-100 transition-colors hover:bg-ink-800"
+              className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-ink-700 px-8 sm:w-auto py-3.5 font-semibold text-ink-100 transition-colors hover:bg-ink-800"
             >
               View Leaderboard
               <ArrowRight className="h-4 w-4" />

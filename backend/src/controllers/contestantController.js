@@ -1,9 +1,13 @@
-const catchAsync = require('../utils/catchAsync');
-const AppError = require('../utils/AppError');
-const sendResponse = require('../utils/sendResponse');
-const Contestant = require('../models/Contestant');
-const Category = require('../models/Category');
-const { uploadBufferToCloudinary, deleteFromCloudinary } = require('../utils/cloudinaryHelpers');
+const catchAsync = require("../utils/catchAsync");
+const AppError = require("../utils/AppError");
+const sendResponse = require("../utils/sendResponse");
+const Contestant = require("../models/Contestant");
+const Category = require("../models/Category");
+const { cached, bust } = require("../utils/cache");
+const {
+  uploadBufferToCloudinary,
+  deleteFromCloudinary,
+} = require("../utils/cloudinaryHelpers");
 
 // GET /api/contestants?category=slug&search=&page=&limit=
 exports.getContestants = catchAsync(async (req, res, next) => {
@@ -13,44 +17,66 @@ exports.getContestants = catchAsync(async (req, res, next) => {
   if (category) {
     const categoryDoc = await Category.findOne({ slug: category });
     if (!categoryDoc) {
-      return next(new AppError('Category not found.', 404, 'NOT_FOUND'));
+      return next(new AppError("Category not found.", 404, "NOT_FOUND"));
     }
     filter.category = categoryDoc._id;
   }
 
   if (search) {
-    filter.name = { $regex: search, $options: 'i' };
+    filter.name = { $regex: search, $options: "i" };
   }
 
   const skip = (Number(page) - 1) * Number(limit);
 
-  const [contestants, total] = await Promise.all([
-    Contestant.find(filter)
-      .populate('category', 'name slug')
-      .sort({ voteCount: -1, createdAt: 1 })
-      .skip(skip)
-      .limit(Number(limit)),
-    Contestant.countDocuments(filter),
-  ]);
+  const load = async () => {
+    const [contestants, total] = await Promise.all([
+      Contestant.find(filter)
+        .populate("category", "name slug")
+        .sort({ voteCount: -1, createdAt: 1 })
+        .skip(skip)
+        .limit(Number(limit)),
+      Contestant.countDocuments(filter),
+    ]);
+    return { contestants, total };
+  };
+  // Public visitors share one result for 10s (vote counts also update live over the socket). Dashboard users always get fresh data.
+  const { contestants, total } = req.user
+    ? await load()
+    : await cached(
+        `contestants:list:${category || ""}:${search || ""}:${page}:${limit}`,
+        10000,
+        load,
+      );
 
-  sendResponse(res, 200, 'Contestants retrieved successfully.', { contestants }, {
-    total,
-    page: Number(page),
-    pages: Math.ceil(total / Number(limit)),
-  });
+  sendResponse(
+    res,
+    200,
+    "Contestants retrieved successfully.",
+    { contestants },
+    {
+      total,
+      page: Number(page),
+      pages: Math.ceil(total / Number(limit)),
+    },
+  );
 });
 
 // GET /api/contestants/leaderboard/:categorySlug -> ranked list for one category
 exports.getLeaderboardByCategory = catchAsync(async (req, res, next) => {
   const categoryDoc = await Category.findOne({ slug: req.params.categorySlug });
   if (!categoryDoc) {
-    return next(new AppError('Category not found.', 404, 'NOT_FOUND'));
+    return next(new AppError("Category not found.", 404, "NOT_FOUND"));
   }
 
-  const contestants = await Contestant.find({ category: categoryDoc._id, isActive: true }).sort({
-    voteCount: -1,
-    createdAt: 1,
-  });
+  const contestants = await cached(
+    `contestants:board:${categoryDoc._id}`,
+    5000,
+    () =>
+      Contestant.find({ category: categoryDoc._id, isActive: true }).sort({
+        voteCount: -1,
+        createdAt: 1,
+      }),
+  );
 
   const totalVotes = contestants.reduce((sum, c) => sum + c.voteCount, 0);
 
@@ -60,12 +86,19 @@ exports.getLeaderboardByCategory = catchAsync(async (req, res, next) => {
     photo: c.photo,
     contestantNumber: c.contestantNumber,
     voteCount: c.voteCount,
-    percentage: totalVotes > 0 ? Number(((c.voteCount / totalVotes) * 100).toFixed(1)) : 0,
+    percentage:
+      totalVotes > 0
+        ? Number(((c.voteCount / totalVotes) * 100).toFixed(1))
+        : 0,
     rank: index + 1,
   }));
 
-  sendResponse(res, 200, 'Leaderboard retrieved successfully.', {
-    category: { id: categoryDoc._id, name: categoryDoc.name, slug: categoryDoc.slug },
+  sendResponse(res, 200, "Leaderboard retrieved successfully.", {
+    category: {
+      id: categoryDoc._id,
+      name: categoryDoc.name,
+      slug: categoryDoc.slug,
+    },
     totalVotes,
     contestants: ranked,
   });
@@ -73,13 +106,16 @@ exports.getLeaderboardByCategory = catchAsync(async (req, res, next) => {
 
 // GET /api/contestants/:id
 exports.getContestant = catchAsync(async (req, res, next) => {
-  const contestant = await Contestant.findById(req.params.id).populate('category', 'name slug');
+  const contestant = await Contestant.findById(req.params.id).populate(
+    "category",
+    "name slug",
+  );
 
   if (!contestant) {
-    return next(new AppError('Contestant not found.', 404, 'NOT_FOUND'));
+    return next(new AppError("Contestant not found.", 404, "NOT_FOUND"));
   }
 
-  sendResponse(res, 200, 'Contestant retrieved successfully.', { contestant });
+  sendResponse(res, 200, "Contestant retrieved successfully.", { contestant });
 });
 
 // POST /api/contestants  (admin/host)
@@ -87,19 +123,29 @@ exports.createContestant = catchAsync(async (req, res, next) => {
   const { name, category, bio, instagramHandle, contestantNumber } = req.body;
 
   if (!name || !category) {
-    return next(new AppError('Name and category are required.', 400, 'MISSING_FIELDS'));
+    return next(
+      new AppError("Name and category are required.", 400, "MISSING_FIELDS"),
+    );
   }
 
   if (!req.file) {
-    return next(new AppError('A contestant photo is required.', 400, 'MISSING_PHOTO'));
+    return next(
+      new AppError("A contestant photo is required.", 400, "MISSING_PHOTO"),
+    );
   }
 
   const categoryDoc = await Category.findById(category);
   if (!categoryDoc) {
-    return next(new AppError('Selected category does not exist.', 400, 'INVALID_CATEGORY'));
+    return next(
+      new AppError(
+        "Selected category does not exist.",
+        400,
+        "INVALID_CATEGORY",
+      ),
+    );
   }
 
-  const result = await uploadBufferToCloudinary(req.file.buffer, 'contestants');
+  const result = await uploadBufferToCloudinary(req.file.buffer, "contestants");
 
   const contestant = await Contestant.create({
     name,
@@ -110,52 +156,69 @@ exports.createContestant = catchAsync(async (req, res, next) => {
     photo: { url: result.secure_url, publicId: result.public_id },
   });
 
-  sendResponse(res, 201, 'Contestant added successfully.', { contestant });
+  bust("contestants:");
+  bust("stats:");
+  sendResponse(res, 201, "Contestant added successfully.", { contestant });
 });
 
 // PATCH /api/contestants/:id
 exports.updateContestant = catchAsync(async (req, res, next) => {
   const contestant = await Contestant.findById(req.params.id);
   if (!contestant) {
-    return next(new AppError('Contestant not found.', 404, 'NOT_FOUND'));
+    return next(new AppError("Contestant not found.", 404, "NOT_FOUND"));
   }
 
-  const { name, category, bio, instagramHandle, contestantNumber, isActive } = req.body;
+  const { name, category, bio, instagramHandle, contestantNumber, isActive } =
+    req.body;
 
   if (category) {
     const categoryDoc = await Category.findById(category);
     if (!categoryDoc) {
-      return next(new AppError('Selected category does not exist.', 400, 'INVALID_CATEGORY'));
+      return next(
+        new AppError(
+          "Selected category does not exist.",
+          400,
+          "INVALID_CATEGORY",
+        ),
+      );
     }
     contestant.category = category;
   }
 
   if (name !== undefined) contestant.name = name;
   if (bio !== undefined) contestant.bio = bio;
-  if (instagramHandle !== undefined) contestant.instagramHandle = instagramHandle;
-  if (contestantNumber !== undefined) contestant.contestantNumber = contestantNumber;
+  if (instagramHandle !== undefined)
+    contestant.instagramHandle = instagramHandle;
+  if (contestantNumber !== undefined)
+    contestant.contestantNumber = contestantNumber;
   if (isActive !== undefined) contestant.isActive = isActive;
 
   if (req.file) {
-    const result = await uploadBufferToCloudinary(req.file.buffer, 'contestants');
+    const result = await uploadBufferToCloudinary(
+      req.file.buffer,
+      "contestants",
+    );
     await deleteFromCloudinary(contestant.photo?.publicId);
     contestant.photo = { url: result.secure_url, publicId: result.public_id };
   }
 
   await contestant.save();
 
-  sendResponse(res, 200, 'Contestant updated successfully.', { contestant });
+  bust("contestants:");
+  sendResponse(res, 200, "Contestant updated successfully.", { contestant });
 });
 
 // DELETE /api/contestants/:id
 exports.deleteContestant = catchAsync(async (req, res, next) => {
   const contestant = await Contestant.findById(req.params.id);
   if (!contestant) {
-    return next(new AppError('Contestant not found.', 404, 'NOT_FOUND'));
+    return next(new AppError("Contestant not found.", 404, "NOT_FOUND"));
   }
 
   await deleteFromCloudinary(contestant.photo?.publicId);
   await contestant.deleteOne();
 
-  sendResponse(res, 200, 'Contestant deleted successfully.');
+  bust("contestants:");
+  bust("stats:");
+  sendResponse(res, 200, "Contestant deleted successfully.");
 });

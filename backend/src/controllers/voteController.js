@@ -113,6 +113,7 @@ exports.initializeVote = catchAsync(async (req, res, next) => {
       contestantId: contestant._id.toString(),
       contestantName: contestant.name,
       voteQuantity: qty,
+      app: "voting",
     },
 
     callbackUrl: `${process.env.CLIENT_URL}/vote/callback`,
@@ -392,10 +393,40 @@ exports.paystackWebhook = catchAsync(async (req, res) => {
   }
 
   const event = req.body;
+  const reference = event?.data?.reference || "";
 
-  if (event.event === "charge.success") {
+  // One Paystack account can only have ONE webhook URL, so this endpoint receives payments for BOTH sites.
+  // Ticket payments (TKT-...) are passed on, untouched, to the ticket API, which re-checks the signature itself.
+  if (reference.startsWith("TKT-")) {
+    const target = process.env.TICKET_WEBHOOK_URL;
+    if (!target) {
+      console.error(
+        "[Webhook] TKT payment received but TICKET_WEBHOOK_URL is not set",
+      );
+      return res.status(500).json({ received: false });
+    }
     try {
-      await finalizeTransaction(event.data.reference);
+      const forwarded = await fetch(target, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          "x-paystack-signature": signature,
+        },
+        body: req.rawBody,
+        signal: AbortSignal.timeout(20000),
+      });
+      if (!forwarded.ok)
+        throw new Error(`ticket API answered ${forwarded.status}`);
+      return res.status(200).json({ received: true, forwarded: true });
+    } catch (err) {
+      console.error("[Webhook] Could not pass ticket payment on:", err.message);
+      return res.status(500).json({ received: false }); // Paystack will retry later
+    }
+  }
+
+  if (event.event === "charge.success" && reference) {
+    try {
+      await finalizeTransaction(reference);
     } catch (err) {
       console.error("[Webhook] Failed to finalize transaction:", err.message);
     }
