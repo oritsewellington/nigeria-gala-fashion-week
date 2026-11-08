@@ -13,8 +13,7 @@ const CATEGORIES = [
   "Male Runway Model of the Year",
   "Female Runway Model of the Year",
   "Influencer / Tiktoker of the Year",
-  "Male Dancer of the Year",
-  "Female Dancer of the Year",
+  "Dancer of the Year",
   "Commercial Model of the Year",
   "Photographer of the Year",
   "Brand of the Year",
@@ -29,12 +28,12 @@ const HOSTS = [
   {
     name: process.env.HOST1_NAME || "Event Host 1",
     email: (process.env.HOST1_EMAIL || "host1@gmail.com").toLowerCase(),
-    password: process.env.HOST1_PASSWORD || "ngfwhost001",
+    password: process.env.HOST1_PASSWORD || "host2031",
   },
   {
     name: process.env.HOST2_NAME || "Event Host 2",
     email: (process.env.HOST2_EMAIL || "host2@gmail.com").toLowerCase(),
-    password: process.env.HOST2_PASSWORD || "ngfwhost002",
+    password: process.env.HOST2_PASSWORD || "host2031",
   },
 ];
 
@@ -43,7 +42,7 @@ const run = async () => {
   console.log("[Seed] Connected to MongoDB");
 
   const email = (
-    process.env.SUPERADMIN_EMAIL || "admin@example.com"
+    process.env.SUPERADMIN_EMAIL || "zondo@gmail.com"
   ).toLowerCase();
   const existing = await User.findOne({ email });
 
@@ -53,7 +52,7 @@ const run = async () => {
     await User.create({
       name: process.env.SUPERADMIN_NAME || "Super Admin",
       email,
-      password: process.env.SUPERADMIN_PASSWORD || "ChangeMe123!",
+      password: process.env.SUPERADMIN_PASSWORD || "zondo2031",
       role: "superadmin",
     });
     console.log(`[Seed] Super admin created: ${email}`);
@@ -81,11 +80,21 @@ const run = async () => {
   const removed = await Category.deleteMany({ name: { $nin: CATEGORIES } });
   console.log(`[Seed] Categories removed: ${removed.deletedCount}`);
 
+  const slugify = (name) =>
+    name
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/(^-|-$)/g, "");
+
   const result = await Category.bulkWrite(
     CATEGORIES.map((name, i) => ({
       updateOne: {
         filter: { name },
-        update: { $set: { displayOrder: i }, $setOnInsert: { name } },
+        update: {
+          $set: { displayOrder: i, slug: slugify(name) },
+          $setOnInsert: { name, isActive: true, description: "" },
+        },
         upsert: true,
       },
     })),

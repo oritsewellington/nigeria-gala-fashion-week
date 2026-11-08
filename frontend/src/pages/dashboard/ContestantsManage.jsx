@@ -27,10 +27,12 @@ const emptyForm = {
 
 export default function ContestantsManage() {
   const [search, setSearch] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState("");
   const { data: categoriesData } = useGetCategoriesQuery({ all: "true" });
   const { data, isLoading, isError, error, refetch } = useGetContestantsQuery({
     search: search || undefined,
-    limit: 100,
+    // The list used to stop at 100, which hid the newest contestants. This is high enough for everyone.
+    limit: 500,
   });
   const [createContestant, { isLoading: isCreating }] =
     useCreateContestantMutation();
@@ -45,7 +47,12 @@ export default function ContestantsManage() {
   const [deleteTarget, setDeleteTarget] = useState(null);
 
   const categories = categoriesData?.data?.categories || [];
-  const contestants = data?.data?.contestants || [];
+  const allContestants = data?.data?.contestants || [];
+  const contestants = categoryFilter
+    ? allContestants.filter(
+        (c) => (c.category?._id || c.category) === categoryFilter,
+      )
+    : allContestants;
 
   const openCreate = () => {
     setEditingId(null);
@@ -135,16 +142,36 @@ export default function ContestantsManage() {
         </Button>
       </div>
 
-      <div className="relative max-w-sm">
-        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-500" />
-        <input
-          type="text"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search contestants..."
-          className="w-full bg-ink-900 border border-ink-800 rounded-xl pl-10 pr-4 py-2.5 text-base text-ink-100 placeholder:text-ink-500 focus:outline-none focus:border-gold-500/50"
-        />
+      <div className="flex flex-col sm:flex-row gap-3">
+        <div className="relative w-full sm:max-w-sm">
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-500" />
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search contestants..."
+            className="w-full bg-ink-900 border border-ink-800 rounded-xl pl-10 pr-4 py-2.5 text-base text-ink-100 placeholder:text-ink-500 focus:outline-none focus:border-gold-500/50"
+          />
+        </div>
+        <select
+          value={categoryFilter}
+          onChange={(e) => setCategoryFilter(e.target.value)}
+          className="w-full sm:max-w-xs bg-ink-900 border border-ink-800 rounded-xl px-4 py-2.5 text-base text-ink-100 focus:outline-none focus:border-gold-500/50"
+        >
+          <option value="">All categories</option>
+          {categories.map((cat) => (
+            <option key={cat._id} value={cat._id}>
+              {cat.name}
+            </option>
+          ))}
+        </select>
       </div>
+      {!isLoading && !isError && (
+        <p className="text-xs text-ink-500">
+          Showing {contestants.length} contestant
+          {contestants.length === 1 ? "" : "s"}
+        </p>
+      )}
 
       {isLoading ? (
         <PageLoader label="Loading contestants..." />

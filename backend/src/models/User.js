@@ -1,33 +1,32 @@
-const mongoose = require('mongoose');
-const bcrypt = require('bcryptjs');
-const validator = require('validator');
+const mongoose = require("mongoose");
+const bcrypt = require("bcryptjs");
+const validator = require("validator");
 
 const userSchema = new mongoose.Schema(
   {
     name: {
       type: String,
-      required: [true, 'Name is required'],
+      required: [true, "Name is required"],
       trim: true,
-      maxlength: [100, 'Name cannot exceed 100 characters'],
+      maxlength: [100, "Name cannot exceed 100 characters"],
     },
     email: {
       type: String,
-      required: [true, 'Email is required'],
+      required: [true, "Email is required"],
       unique: true,
       lowercase: true,
       trim: true,
-      validate: [validator.isEmail, 'Please provide a valid email'],
+      validate: [validator.isEmail, "Please provide a valid email"],
     },
     password: {
       type: String,
-      required: [true, 'Password is required'],
-      minlength: [8, 'Password must be at least 8 characters'],
+      required: [true, "Password is required"],
       select: false,
     },
     role: {
       type: String,
-      enum: ['superadmin', 'host'],
-      default: 'host',
+      enum: ["superadmin", "host"],
+      default: "host",
     },
     avatar: {
       url: { type: String, default: null },
@@ -43,23 +42,30 @@ const userSchema = new mongoose.Schema(
     },
     passwordChangedAt: Date,
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
-userSchema.pre('save', async function hashPassword(next) {
-  if (!this.isModified('password')) return next();
+userSchema.pre("save", async function hashPassword(next) {
+  if (!this.isModified("password")) return next();
   this.password = await bcrypt.hash(this.password, 12);
   if (!this.isNew) this.passwordChangedAt = Date.now() - 1000;
   next();
 });
 
-userSchema.methods.comparePassword = function comparePassword(candidatePassword) {
+userSchema.methods.comparePassword = function comparePassword(
+  candidatePassword,
+) {
   return bcrypt.compare(candidatePassword, this.password);
 };
 
-userSchema.methods.changedPasswordAfter = function changedPasswordAfter(jwtTimestamp) {
+userSchema.methods.changedPasswordAfter = function changedPasswordAfter(
+  jwtTimestamp,
+) {
   if (!this.passwordChangedAt) return false;
-  const changedTimestamp = parseInt(this.passwordChangedAt.getTime() / 1000, 10);
+  const changedTimestamp = parseInt(
+    this.passwordChangedAt.getTime() / 1000,
+    10,
+  );
   return jwtTimestamp < changedTimestamp;
 };
 
@@ -75,4 +81,4 @@ userSchema.methods.toSafeObject = function toSafeObject() {
   };
 };
 
-module.exports = mongoose.model('User', userSchema);
+module.exports = mongoose.model("User", userSchema);
